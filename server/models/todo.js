@@ -1,11 +1,11 @@
 var mongoose = require('mongoose');
 
-var Todo = mongoose.model('Todo', {//creating a model
+var Todo = mongoose.model('Todo', {
   text: {
     type: String,
+    required: true,
     minlength: 1,
-    trim: true, //удаляет пробелы в начале и конце
-    required: true
+    trim: true
   },
   completed: {
     type: Boolean,
@@ -17,4 +17,4 @@ var Todo = mongoose.model('Todo', {//creating a model
   }
 });
 
-module.exports = { Todo };
+module.exports = {Todo};
