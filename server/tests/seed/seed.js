@@ -6,22 +6,21 @@ const {User} = require('./../../models/user');
 
 const userOneId = new ObjectID();
 const userTwoId = new ObjectID();
-
 const users = [{
   _id: userOneId,
-  email: "nikita@example.com",
-  password: "123abc54",
+  email: 'andrew@example.com',
+  password: 'userOnePass',
   tokens: [{
-    access: "auth",
-    token: jwt.sign({_id: userOneId.toHexString(), access: 'auth'}, process.env.JWT_SECRET).toString()
+    access: 'auth',
+    token: jwt.sign({_id: userOneId, access: 'auth'}, process.env.JWT_SECRET).toString()
   }]
 }, {
   _id: userTwoId,
-  email: "pavel@example.com",
-  password: "abcrtyu",
+  email: 'jen@example.com',
+  password: 'userTwoPass',
   tokens: [{
-    access: "auth",
-    token: jwt.sign({_id: userTwoId.toHexString(), access: process.env.JWT_SECRET}, 'abc123').toString()
+    access: 'auth',
+    token: jwt.sign({_id: userTwoId, access: 'auth'}, process.env.JWT_SECRET).toString()
   }]
 }];
 
@@ -48,8 +47,8 @@ const populateUsers = (done) => {
     var userOne = new User(users[0]).save();
     var userTwo = new User(users[1]).save();
 
-    return Promise.all([userOne, userTwo]);
+    return Promise.all([userOne, userTwo])
   }).then(() => done());
 };
 
-module.exports = {todos, populateTodos, populateUsers, users};
+module.exports = {todos, populateTodos, users, populateUsers};

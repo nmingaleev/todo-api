@@ -12,7 +12,6 @@ var UserSchema = new mongoose.Schema({
     minlength: 1,
     unique: true,
     validate: {
-      isAsync: false,
       validator: validator.isEmail,
       message: '{VALUE} is not a valid email'
     }
@@ -33,42 +32,6 @@ var UserSchema = new mongoose.Schema({
     }
   }]
 });
-
-UserSchema.statics.findByCredentials = function (email, password) {
-  var User = this;
-
-  return User.findOne({email}).then((user) => {
-    if (!user) {
-      return Promise.reject();
-    }
-
-    return new Promise((resolve, reject) => {
-      bcrypt.compare(password, user.password, (err, res) => {
-        if (err) {
-          reject();
-        }
-        resolve(user);
-      });
-    });
-  });
-};
-
-UserSchema.statics.findByToken = function(token) {
-  var User = this;
-  var decoded;
-
-  try {
-    decoded = jwt.verify(token, process.env.JWT_SECRET);
-  } catch (e) {
-    return Promise.reject();
-  }
-
-  return User.findOne({
-    '_id': decoded._id,
-    'tokens.token': token,
-    'tokens.access': 'auth'
-  });
-};
 
 UserSchema.methods.toJSON = function () {
   var user = this;
@@ -93,11 +56,47 @@ UserSchema.methods.removeToken = function (token) {
   var user = this;
 
   return user.update({
-    $pull: { //удаляет из массива нужные нам элементы
-      tokens: {
-        token: token
-      }
+    $pull: {
+      tokens: {token}
     }
+  });
+};
+
+UserSchema.statics.findByToken = function (token) {
+  var User = this;
+  var decoded;
+
+  try {
+    decoded = jwt.verify(token, process.env.JWT_SECRET);
+  } catch (e) {
+    return Promise.reject();
+  }
+
+  return User.findOne({
+    '_id': decoded._id,
+    'tokens.token': token,
+    'tokens.access': 'auth'
+  });
+};
+
+UserSchema.statics.findByCredentials = function (email, password) {
+  var User = this;
+
+  return User.findOne({email}).then((user) => {
+    if (!user) {
+      return Promise.reject();
+    }
+
+    return new Promise((resolve, reject) => {
+      // Use bcrypt.compare to compare password and user.password
+      bcrypt.compare(password, user.password, (err, res) => {
+        if (res) {
+          resolve(user);
+        } else {
+          reject();
+        }
+      });
+    });
   });
 };
 
@@ -110,7 +109,7 @@ UserSchema.pre('save', function (next) {
         user.password = hash;
         next();
       });
-    })
+    });
   } else {
     next();
   }
